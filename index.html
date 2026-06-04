@@ -688,9 +688,7 @@ function showScreen(id){
   var bgm = document.getElementById('bgm');
   if(!bgm) return;
   if(id === 's-intro'){
-    // 처음 화면 → BGM 재생 + 볼륨 정상화
-    if(bgm.paused){ bgm.play().catch(function(){}); }
-    fadeBGM(0.2, 800);
+    // goIntro에서 직접 처리 (BGM 정지)
   } else if(id === 's-result'){
     // 당첨 화면 → 볼륨 다운
     fadeBGM(0.1, 600);
@@ -1078,7 +1076,25 @@ function startGame(){
 }
 
 function onPlayBtn(){if(playHandler)playHandler();}
-function goIntro(){showScreen('s-intro');}
+function goIntro(){
+  showScreen('s-intro');
+  // BGM 정지
+  var bgm = document.getElementById('bgm');
+  if(bgm){ fadeBGM(0, 600); setTimeout(function(){ bgm.pause(); bgm.currentTime=0; }, 650); }
+  // 오늘 참여 여부 확인해서 버튼 업데이트
+  var savedStr = safeGet(storageKey());
+  if(savedStr){
+    try{
+      var data = JSON.parse(savedStr);
+      var btn = document.getElementById('start-btn');
+      btn.textContent = '✅ 오늘 이미 참여했어요';
+      btn.onclick = function(){
+        showResult(data.grade);
+        if(data.order) document.getElementById('ri-order').textContent = data.order+'번째 참여 🎉';
+      };
+    }catch(e){}
+  }
+}
 
 // ── 효과음 (Web Audio API) ──
 function playCheerSound(grade){
